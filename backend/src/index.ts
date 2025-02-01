@@ -52,7 +52,7 @@ res.status(403).json({message: "You cant access this"})
 
 
 app.post("/chat", async (req, res)=>{
-
+//chat will start here 
 });
 app.listen(3000);
 
