@@ -3,12 +3,15 @@ import express, { response } from "express";
 import {basePrompt as nodeBasePrompt} from "./defaults/node";
 import {basePrompt as reactBasePrompt} from "./defaults/react";
 import { BASE_PROMPT, getSystemPrompt } from "./prompts";
+// import cors from "cors";
+import cors from "cors";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -19,12 +22,16 @@ const SYSTEM_PROMPT = "Return either node or react based on what do you think th
 
 app.post("/template", async (req, res) => {
   const prompt = req.body.prompt;
+  console.log("ye hai:", req.body); 
+
   const aiprompt = `${SYSTEM_PROMPT}\n\n${prompt}`;
 
   const result = await model.generateContent(aiprompt);
   // const answer = result.response.text();
 
   const answer = result.response.text().trim();
+//   const answer = result.text().trim();
+
   console.log("Full Response:", answer); 
 
 

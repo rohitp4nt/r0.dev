@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FolderTree, ChevronRight, ArrowLeft, Code, Eye } from 'lucide-react';
 import Editor from "@monaco-editor/react";
+import { BACKEND_URL } from '../config';
+import axios from 'axios';
+import { parseXml } from '../steps';
 
 const BuilderPage = () => {
   const location = useLocation();
@@ -9,16 +12,8 @@ const BuilderPage = () => {
   const { prompt } = location.state || { prompt: '' };
   const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [steps, setSteps] = useState<any[]>([]);
   const [fileContent, setFileContent] = useState<string>('// Select a file to view its contents');
-
-  // Mock steps for demonstration
-  const steps = [
-    { id: 1, title: 'Initialize Project', status: 'completed' },
-    { id: 2, title: 'Setup Dependencies', status: 'in-progress' },
-    { id: 3, title: 'Generate Components', status: 'pending' },
-    { id: 4, title: 'Apply Styling', status: 'pending' },
-    { id: 5, title: 'Optimize & Build', status: 'pending' },
-  ];
 
   // Mock file structure for demonstration
   const files = [
@@ -31,13 +26,33 @@ const BuilderPage = () => {
       ]},
     ]},
   ];
+  
+  async function init() {
+    const response = await axios.post(`${BACKEND_URL}/template`,{prompt: prompt.trim() });
+    
+    const { prompts, uiPrompts } = response.data;
+    setSteps(parseXml(uiPrompts[0]));
 
-  const handleFileSelect = (file: any) => {
+    const stepsResponse = await axios.post(`${BACKEND_URL}/chat`, {
+      messages: {...prompts, prompt}.map((content: string) => ({
+        role: "user",
+        content
+      }))
+    });
+    
+  }
+
+  useEffect(() => {
+    init();
+  }, []); // Runs once on component mount
+
+  const handleFileSelect = (file: { id: number; name: string; type: string; content?: string }) => {
     if (file.type === 'file') {
       setSelectedFile(file.name);
-      setFileContent(file.content);
+      setFileContent(file.content || '// No content available');
     }
   };
+ 
 
   return (
     <div className="min-h-screen bg-gray-900 flex">
@@ -130,7 +145,7 @@ const BuilderPage = () => {
               </div>
             </div>
 
-            {/* Content Area */}
+            {/* Content Area */}  
             <div className="flex-1">
               {activeTab === 'code' ? (
                 <Editor
