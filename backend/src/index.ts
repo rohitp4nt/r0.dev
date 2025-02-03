@@ -1,5 +1,5 @@
 require("dotenv").config();
-import express from "express";
+import express, { response } from "express";
 import {basePrompt as nodeBasePrompt} from "./defaults/node";
 import {basePrompt as reactBasePrompt} from "./defaults/react";
 import { BASE_PROMPT, getSystemPrompt } from "./prompts";
@@ -21,7 +21,6 @@ app.post("/template", async (req, res) => {
   const prompt = req.body.prompt;
   const aiprompt = `${SYSTEM_PROMPT}\n\n${prompt}`;
 
-  // Generate full response in one go
   const result = await model.generateContent(aiprompt);
   // const answer = result.response.text();
 
@@ -52,8 +51,18 @@ res.status(403).json({message: "You cant access this"})
 
 
 app.post("/chat", async (req, res)=>{
-//chat will start here 
+    const  messages = req.body.messages;
+    const aiprompt = `${getSystemPrompt()}\n\n${messages}`;
+    console.log(aiprompt);
+
+    const result = await model.generateContent(aiprompt);
+  
+    const answer = result.response.text();
+    console.log("Full Response:", answer); 
+    res.json({response: answer});
 });
+
+
 app.listen(3000);
 
 
