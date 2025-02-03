@@ -62,7 +62,7 @@ app.post("/chat", async (req, res)=>{
     res.json({response: answer});
 });
 
-
+//chat api is for generating the final response 
 app.listen(3000);
 
 
