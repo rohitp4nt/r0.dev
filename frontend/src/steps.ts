@@ -1,11 +1,5 @@
-interface Step {
-  id: number;
-  title: string;
-  status: string;
-  code?: string;
-  path?: string;
-}
 
+import { Step, StepType } from './types';
 export function parseXml(response: string): Step[] {
     // Extract the XML content between <boltArtifact> tags
     const xmlMatch = response.match(/<boltArtifact[^>]*>([\s\S]*?)<\/boltArtifact>/);
@@ -26,7 +20,8 @@ export function parseXml(response: string): Step[] {
     steps.push({
       id: stepId++,
       title: artifactTitle,
-      status: 'pending'
+      status: 'pending',
+      type: StepType.CreateFolder
     });
   
     // Regular expression to find boltAction elements
@@ -43,7 +38,8 @@ export function parseXml(response: string): Step[] {
           title: `Create ${filePath || 'file'}`,
           status: 'pending',
           code: content.trim(),
-          path: filePath
+          path: filePath,
+          type: StepType.CreateFile
         });
       } else if (type === 'shell') {
         // Shell command step
@@ -51,7 +47,8 @@ export function parseXml(response: string): Step[] {
           id: stepId++,
           title: 'Run command',
           status: 'pending',
-          code: content.trim()
+          code: content.trim(),
+          type: StepType.RunScript
         });
       }
     }

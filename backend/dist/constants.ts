@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.allowedHTMLElements = exports.MODIFICATIONS_TAG_NAME = exports.WORK_DIR = exports.WORK_DIR_NAME = void 0;
-exports.WORK_DIR_NAME = 'project';
-exports.WORK_DIR = `/home/${exports.WORK_DIR_NAME}`;
-exports.MODIFICATIONS_TAG_NAME = 'bolt_file_modifications';
-exports.allowedHTMLElements = [
+export const WORK_DIR_NAME = 'project';
+export const WORK_DIR = `/home/${WORK_DIR_NAME}`;
+export const MODIFICATIONS_TAG_NAME = 'bolt_file_modifications';
+export const allowedHTMLElements = [
     'a',
     'b',
     'blockquote',

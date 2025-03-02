@@ -16,13 +16,13 @@ app.use(cors());
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-// const aiprompt = "Write the code for a todo application in js";
+// const aiprompt = "Write the code for a todo application in js"; 
 
 const SYSTEM_PROMPT = "Return either node or react based on what do you think this project should be. Only return a single word either 'node' or 'react'. Do not return anything extra";
 
 app.post("/template", async (req, res) => {
   const prompt = req.body.prompt;
-  console.log("ye hai:", req.body); 
+  console.log("ye hai req.body vala:", req.body); 
 
   const aiprompt = `${SYSTEM_PROMPT}\n\n${prompt}`;
 
@@ -32,9 +32,9 @@ app.post("/template", async (req, res) => {
   const answer = result.response.text().trim();
 //   const answer = result.text().trim();
 
-  console.log("Full Response:", answer); 
-
-
+    console.log("Full Response:", answer);
+    console.log("Full aiPromt:", aiprompt); 
+  
   if (answer == "react") {
     res.json({
         prompts: [BASE_PROMPT, `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${reactBasePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`],
@@ -51,21 +51,21 @@ if (answer === "node") {
     return;
 }
 res.status(403).json({message: "You cant access this"})
-    return;
-
-
+    return;   
 });
 
 
 app.post("/chat", async (req, res)=>{
+    console.log("reatched1");
     const  messages = req.body.messages;
-    const aiprompt = `${getSystemPrompt()}\n\n${messages}`;
-    console.log(aiprompt);
+    console.log("reatched2");
 
+    const aiprompt = `${getSystemPrompt()}\n\n${messages}`;
+    console.log("this is ai promt form /chat" ,aiprompt);
     const result = await model.generateContent(aiprompt);
   
     const answer = result.response.text();
-    console.log("Full Response:", answer); 
+    console.log("Full Response ye h :", answer); 
     res.json({response: answer});
 });
 

@@ -5,6 +5,7 @@ import Editor from "@monaco-editor/react";
 import { BACKEND_URL } from '../config';
 import axios from 'axios';
 import { parseXml } from '../steps';
+import {StepType, Step, type FileItem} from '../types'
 
 const BuilderPage = () => {
   const location = useLocation();
@@ -12,20 +13,78 @@ const BuilderPage = () => {
   const { prompt } = location.state || { prompt: '' };
   const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [steps, setSteps] = useState<any[]>([]);
   const [fileContent, setFileContent] = useState<string>('// Select a file to view its contents');
 
-  // Mock file structure for demonstration
-  const files = [
-    { id: 1, name: 'package.json', type: 'file', content: '{\n  "name": "example",\n  "version": "1.0.0"\n}' },
-    { id: 2, name: 'src', type: 'folder', items: [
-      { id: 3, name: 'App.tsx', type: 'file', content: 'function App() {\n  return <div>Hello World</div>;\n}' },
-      { id: 4, name: 'components', type: 'folder', items: [
-        { id: 5, name: 'Header.tsx', type: 'file', content: 'export const Header = () => {\n  return <header>Header</header>;\n}' },
-        { id: 6, name: 'Footer.tsx', type: 'file', content: 'export const Footer = () => {\n  return <footer>Footer</footer>;\n}' },
-      ]},
-    ]},
-  ];
+
+  const [steps, setSteps] = useState<any[]>([]);
+  const [files, setFiles] = useState<FileItem[]>([]);
+
+  useEffect(() => {
+    let originalFiles = [...files];
+    let updateHappened = false;
+    steps.filter(({status}) => status === "pending").map(step => {
+      updateHappened = true;
+      if (step?.type === StepType.CreateFile) {
+        let parsedPath = step.path?.split("/") ?? []; // ["src", "components", "App.tsx"]
+        let currentFileStructure = [...originalFiles]; // {}
+        let finalAnswerRef = currentFileStructure;
+  
+        let currentFolder = ""
+        while(parsedPath.length) {
+          currentFolder =  `${currentFolder}/${parsedPath[0]}`;
+          let currentFolderName = parsedPath[0];
+          parsedPath = parsedPath.slice(1);
+  
+          if (!parsedPath.length) {
+            // final file
+            let file = currentFileStructure.find(x => x.path === currentFolder)
+            if (!file) {
+              currentFileStructure.push({
+                id: Date.now(), // or any unique identifier
+                name: currentFolderName,
+                type: 'file',
+                path: currentFolder,
+                content: step.code
+              })
+            } else {
+              file.content = step.code;
+            }
+          } else {
+            /// in a folder
+            let folder = currentFileStructure.find(x => x.path === currentFolder)
+            if (!folder) {
+              // create the folder
+              currentFileStructure.push({
+                id: Date.now(), // or any unique identifier
+                name: currentFolderName,  
+                type: 'folder',
+                path: currentFolder,
+                children: []
+              })
+            }
+  
+            currentFileStructure = currentFileStructure.find(x => x.path === currentFolder)!.children!;
+          }
+        }
+        originalFiles = finalAnswerRef;
+      }
+
+    })
+
+    if (updateHappened) {
+
+      setFiles(originalFiles)
+      setSteps(steps => steps.map((s: Step) => {
+        return {
+          ...s,
+          status: "completed"
+        }
+        
+      }))
+    }
+    console.log(files);
+  }, [steps, files]);
+  
   
   async function init() {
     const response = await axios.post(`${BACKEND_URL}/template`,{prompt: prompt.trim() });
@@ -135,7 +194,6 @@ const BuilderPage = () => {
               <div className="space-y-2">
                 {files.map((file) => (
                   <FileItem 
-                    key={file.id} 
                     file={file} 
                     level={0} 
                     onSelect={handleFileSelect}

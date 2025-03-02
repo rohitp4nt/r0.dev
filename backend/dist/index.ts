@@ -11,8 +11,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-require("dotenv").config();
+export {};
+import dotenv from "dotenv";
+dotenv.config();
 const express_1 = __importDefault(require("express"));
 const node_1 = require("./defaults/node");
 const react_1 = require("./defaults/react");
@@ -57,10 +58,10 @@ app.post("/template", (req, res) => __awaiter(void 0, void 0, void 0, function* 
 app.post("/chat", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const messages = req.body.messages;
     const aiprompt = `${(0, prompts_1.getSystemPrompt)()}\n\n${messages}`;
-    console.log(aiprompt);
+    console.log("this ",aiprompt);
     const result = yield model.generateContent(aiprompt);
     const answer = result.response.text();
-    console.log("Full Response:", answer);
+    console.log("Full Response ye h system :", answer);
     res.json({ response: answer });
 }));
 //chat api is for generating the final response 
